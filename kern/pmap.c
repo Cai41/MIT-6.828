@@ -289,7 +289,9 @@ page_alloc(int alloc_flags)
 	// Fill this function in
 	if (page_free_list == NULL) return NULL;
 	struct PageInfo *p = page_free_list;
-	memset(page2kva(p), 0, PGSIZE);
+	if (alloc_flags & ALLOC_ZERO) {
+		memset(page2kva(p), 0, PGSIZE);
+	}
 	page_free_list = p->pp_link;
 	p->pp_link = NULL;
 	return p;
@@ -350,6 +352,21 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
+	if (pgdir[PDX(va)] && PTE_P) {
+		pte_t *pt = (pte_t*) KADDR(PTE_ADDR(pgdir[PDX(va)]));
+		return pt+PTX(va);
+	}
+
+	if (create) {
+		struct PageInfo *pp = page_alloc(ALLOC_ZERO);
+		if (pp != NULL) {
+			physaddr_t pa = page2pa(pp);
+			pp->pp_ref++;
+			pgdir[PDX(va)] = pa | PTE_P | PTE_U | PTE_W;
+			pte_t *pt =  (pte_t *)KADDR(pa);
+			return pt+PTX(va);
+		}
+	}
 	return NULL;
 }
 
@@ -368,6 +385,14 @@ static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
 	// Fill this function in
+	size_t next_page = 0;
+	while(next_page < size) {
+		pte_t * entry = pgdir_walk(pgdir, (void*)(va + next_page), 1);
+		if (entry != NULL) {
+			*entry = (pa + next_page) | perm | PTE_P;
+		}
+		next_page += PGSIZE;
+	}
 }
 
 //
@@ -399,6 +424,12 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
+	pte_t *entry = pgdir_walk(pgdir, va, 1);
+	if (entry == NULL) return -E_NO_MEM;
+
+	pp->pp_ref++;
+	if ((*entry) & PTE_P) page_remove(pgdir, va);
+	*entry = page2pa(pp) | perm | PTE_P;
 	return 0;
 }
 
@@ -417,6 +448,13 @@ struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
 	// Fill this function in
+	pte_t *entry = pgdir_walk(pgdir, va, 0);
+	if (entry != NULL) {
+		if (pte_store != NULL) {
+			*pte_store = entry;
+		}
+		return pa2page(PTE_ADDR(*entry));
+	}
 	return NULL;
 }
 
@@ -439,6 +477,13 @@ void
 page_remove(pde_t *pgdir, void *va)
 {
 	// Fill this function in
+	pte_t *entry = NULL;
+	struct PageInfo *pp = page_lookup(pgdir, va, &entry);
+	if (pp != NULL) {
+		page_decref(pp);
+		*entry = 0x0;
+		tlb_invalidate(pgdir, va);
+	}
 }
 
 //
