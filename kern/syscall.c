@@ -39,7 +39,6 @@ sys_cgetc(void)
 static envid_t
 sys_getenvid(void)
 {
-	cprintf("------------------%d\n", curenv->env_id);
 	return curenv->env_id;
 }
 

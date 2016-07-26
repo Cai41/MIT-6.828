@@ -544,7 +544,6 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
 	uintptr_t s_walk = (uintptr_t)va;
-	int i;
 	while (s_walk < (uintptr_t)(va + len)) {
 		if ((int)(s_walk) >= ULIM) {
 			user_mem_check_addr = s_walk;
