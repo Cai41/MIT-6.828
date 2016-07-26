@@ -158,6 +158,8 @@ mem_init(void)
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
+	envs = (struct Env*) boot_alloc(NENV * sizeof(struct Env));
+	memset(envs, 0, NENV * sizeof(struct Env));
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -181,8 +183,8 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
-	size_t size = ROUNDUP(npages * sizeof(struct PageInfo), PGSIZE);
-	boot_map_region(kern_pgdir, UPAGES, size, PADDR(pages), PTE_U | PTE_P);
+	size_t size_page = ROUNDUP(npages * sizeof(struct PageInfo), PGSIZE);
+	boot_map_region(kern_pgdir, UPAGES, size_page, PADDR(pages), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Map the 'envs' array read-only by the user at linear address UENVS
@@ -191,6 +193,8 @@ mem_init(void)
 	//    - the new image at UENVS  -- kernel R, user R
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
+	size_t size_env = ROUNDUP(NENV * sizeof(struct Env), PGSIZE);
+	boot_map_region(kern_pgdir, UENVS, size_env, PADDR(envs), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
