@@ -221,12 +221,16 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 	int r;
 	struct Env *e;
 
-	if (!(e = env_free_list))
+	if (!(e = env_free_list)) {
+		cprintf("No free list\n");
 		return -E_NO_FREE_ENV;
+	}
 
 	// Allocate and set up the page directory for this environment.
-	if ((r = env_setup_vm(e)) < 0)
+	if ((r = env_setup_vm(e)) < 0) {
+		cprintf("set up vm fail\n");
 		return r;
+	}
 
 	// Generate an env_id for this environment.
 	generation = (e->env_id + (1 << ENVGENSHIFT)) & ~(NENV - 1);
@@ -542,6 +546,7 @@ env_run(struct Env *e)
 		curenv->env_runs++;
 		lcr3(PADDR(e->env_pgdir));
 	}
+	unlock_kernel();
 	env_pop_tf(&e->env_tf);
 	
 
