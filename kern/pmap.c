@@ -485,7 +485,9 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
+	// cprintf("insert at add:%0x\n", va);
 	pte_t *entry = pgdir_walk(pgdir, va, 1);
+	// cprintf("pgdir walk finish\n");
 	if (entry == NULL) return -E_NO_MEM;
 
 	pp->pp_ref++;
@@ -634,7 +636,7 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 			return -E_FAULT;
 		}
 		pte_t * entry = pgdir_walk(env->env_pgdir, (void*)s_walk, 0);
-		if (((*entry) && perm) == 0) {
+		if ((!entry) || (((*entry) && perm) == 0)) {
 			user_mem_check_addr = s_walk;
 			return -E_FAULT;
 		}

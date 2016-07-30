@@ -87,12 +87,10 @@ sys_exofork(void)
 	// LAB 4: Your code here.
 	struct Env *e = NULL;
 	int res = env_alloc(&e, curenv->env_id);
-	cprintf("err in alloc:%d\n", res);
 	if (res < 0) return res;
 	e->env_status = ENV_NOT_RUNNABLE;
 	e->env_tf = curenv->env_tf;
 	e->env_tf.tf_regs.reg_eax = 0;
-	cprintf("new env id:%d\n", e->env_id);
 	return e->env_id;
 	// panic("sys_exofork not implemented");
 }
@@ -134,7 +132,14 @@ static int
 sys_env_set_pgfault_upcall(envid_t envid, void *func)
 {
 	// LAB 4: Your code here.
-	panic("sys_env_set_pgfault_upcall not implemented");
+	struct Env *e = NULL;
+       	int res = envid2env(envid, &e, 1);
+	if (res < 0) return res;
+
+	// cprintf("upcall registered:%d\n", (int)(func));
+	e->env_pgfault_upcall = func;
+	return 0;
+	// panic("sys_env_set_pgfault_upcall not implemented");
 }
 
 // Allocate a page of memory and map it at 'va' with permission
@@ -164,6 +169,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	//   allocated!
 
 	// LAB 4: Your code here.
+	// cprintf("alloc at address:%0x\n", va);
 	struct Env *e = NULL;
        	int res = envid2env(envid, &e, 1);
 	if (res < 0) return res;
@@ -178,6 +184,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if (pp == NULL) return -E_NO_MEM;
 
 	res = page_insert(e->env_pgdir, pp, va, perm);
+	// cprintf("insert finsih\n");
 	if (res < 0) {
 		page_free(pp);
 	}
@@ -360,6 +367,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_env_set_status(a1, a2);
 	case SYS_exofork:
 		return sys_exofork();
+	case SYS_env_set_pgfault_upcall:
+		return sys_env_set_pgfault_upcall(a1, (void *)a2);
 	default:
 		return -E_INVAL;
 	}
