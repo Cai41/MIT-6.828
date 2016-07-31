@@ -485,9 +485,7 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
-	// cprintf("insert at add:%0x\n", va);
 	pte_t *entry = pgdir_walk(pgdir, va, 1);
-	// cprintf("pgdir walk finish\n");
 	if (entry == NULL) return -E_NO_MEM;
 
 	pp->pp_ref++;

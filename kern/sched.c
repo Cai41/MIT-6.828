@@ -30,6 +30,7 @@ sched_yield(void)
 
 	// LAB 4: Your code here.
 	int i, cur;
+	idle = curenv;
 	if (curenv == NULL)
 		cur = 0;
 	else
@@ -40,7 +41,7 @@ sched_yield(void)
 		}
 		cur = (cur+1)%NENV;
 	}
-	if (curenv->env_status == ENV_RUNNING) {
+	if (idle != NULL && idle->env_status == ENV_RUNNING) {
 		env_run(curenv);
 	}
 
@@ -55,7 +56,6 @@ void
 sched_halt(void)
 {
 	int i;
-
 	// For debugging and testing purposes, if there are no runnable
 	// environments in the system, then drop into the kernel monitor.
 	for (i = 0; i < NENV; i++) {
