@@ -196,7 +196,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	if (pp == NULL) return -E_NO_MEM;
 
 	res = page_insert(e->env_pgdir, pp, va, perm);
-	// cprintf("insert finsih\n");
+
 	if (res < 0) {
 		page_free(pp);
 	}
