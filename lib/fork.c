@@ -68,7 +68,10 @@ duppage(envid_t envid, unsigned pn)
 	// LAB 4: Your code here.
 	// cprintf("%d\n", pn);
 	pte_t entry = uvpt[pn];
-	if ((entry & PTE_W) || (entry & PTE_COW)) {
+	if (entry & PTE_SHARE) {
+		if ((r = sys_page_map(0, (void*)(pn*PGSIZE), envid, (void*)(pn*PGSIZE), entry & PTE_SYSCALL)) < 0)
+			panic("sys_page_map: %e", r);		
+	} else if ((entry & PTE_W) || (entry & PTE_COW)) {
 		if ((r = sys_page_map(0, (void*)(pn*PGSIZE), envid, (void*)(pn*PGSIZE), PTE_P|PTE_U|PTE_COW)) < 0)
 			panic("sys_page_map: %e", r);
 		if ((r = sys_page_map(0, (void*)(pn*PGSIZE), 0, (void*)(pn*PGSIZE), PTE_P|PTE_U|PTE_COW)) < 0)
