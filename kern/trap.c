@@ -255,7 +255,8 @@ trap_dispatch(struct Trapframe *tf)
 	// triggered on every CPU.
 	// LAB 6: Your code here.		
 	case IRQ_OFFSET+IRQ_TIMER:
-		time_tick();
+		if (cpunum() == 0)
+			time_tick();
 		lapic_eoi();
 		sched_yield();
 
