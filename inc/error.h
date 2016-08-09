@@ -28,6 +28,7 @@ enum {
 
 	// Network server error
 	E_TXD_BUF_FULL  ,       // Transmit buffer is full
+	E_RXD_BUF_EMPTY ,       // Receive buffer is empty
 
 	MAXERROR
 };

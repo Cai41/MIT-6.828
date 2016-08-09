@@ -36,6 +36,7 @@ static const char * const error_string[MAXERROR] =
 	[E_NOT_EXEC]	= "file is not a valid executable",
 	[E_NOT_SUPP]	= "operation not supported",
 	[E_TXD_BUF_FULL]= "transmit buffer is full",
+	[E_RXD_BUF_EMPTY]= "receive buffer is empty",
 	
 };
 

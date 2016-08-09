@@ -45,6 +45,12 @@ sched_yield(void)
 		env_run(curenv);
 	}
 
+	for (i = 0; i < NENV; i++) {
+		if (envs[i].env_e1000_recving) {
+			env_run(&envs[i]);
+		}
+	}
+
 	// sched_halt never returns
 	sched_halt();
 }

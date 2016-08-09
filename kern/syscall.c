@@ -409,6 +409,23 @@ sys_trans_pkt(void *va, size_t len)
 	return transmit_packet(va, len);
 }
 
+static int
+sys_recv_pkt(void *va, size_t *len)
+{
+	int r;
+	user_mem_assert(curenv, va, PGSIZE/2, PTE_W | PTE_P | PTE_U);
+	if (!len)
+		return -E_INVAL;
+	if ((r = receive_packet(va, len)) < 0) {
+		curenv->env_e1000_recving = 1;
+		curenv->env_status = ENV_NOT_RUNNABLE;
+		curenv->env_tf.tf_regs.reg_eax = r;
+		sched_yield();
+	} else {
+		return 0;
+	}
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -454,6 +471,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_time_msec();
 	case SYS_trans_pkt:
 		return sys_trans_pkt((void*)a1, a2);
+	case SYS_recv_pkt:
+		return sys_recv_pkt((void *)a1, (size_t *)a2);
 	default:
 		return -E_INVAL;
 	}

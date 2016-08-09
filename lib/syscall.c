@@ -128,3 +128,9 @@ sys_trans_pkt(void *va, size_t len)
 {
 	return syscall(SYS_trans_pkt, 0, (uint32_t)va, len, 0, 0, 0);
 }
+
+int
+sys_recv_pkt(void *va, size_t *len)
+{
+	return syscall(SYS_recv_pkt, 0, (uint32_t)va, (uint32_t)len, 0, 0, 0);
+}

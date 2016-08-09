@@ -14,6 +14,7 @@
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
 #include <kern/time.h>
+#include <kern/e1000.h>
 
 static struct Taskstate ts;
 
@@ -90,6 +91,7 @@ void irq_timer();
 void irq_kbd();
 void irq_serial();
 void irq_spurious();
+void irq_e1000();
 void irq_ide();
 
 void
@@ -122,6 +124,7 @@ trap_init(void)
 	SETGATE(idt[IRQ_OFFSET+IRQ_KBD], 0, GD_KT, irq_kbd, 0);
 	SETGATE(idt[IRQ_OFFSET+IRQ_SERIAL], 0, GD_KT, irq_serial, 0);
 	SETGATE(idt[IRQ_OFFSET+IRQ_SPURIOUS], 0, GD_KT, irq_spurious, 0);
+	SETGATE(idt[IRQ_OFFSET+IRQ_E1000], 0, GD_KT, irq_e1000, 0);
 	SETGATE(idt[IRQ_OFFSET+IRQ_IDE], 0, GD_KT, irq_ide, 0);
 
 	// Per-CPU setup 
@@ -255,19 +258,27 @@ trap_dispatch(struct Trapframe *tf)
 	// triggered on every CPU.
 	// LAB 6: Your code here.		
 	case IRQ_OFFSET+IRQ_TIMER:
-		if (cpunum() == 0)
+			if (cpunum() == 0)
 			time_tick();
 		lapic_eoi();
 		sched_yield();
-
 
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
 	case IRQ_OFFSET+IRQ_KBD:
 		kbd_intr();
+		irq_eoi();
+		lapic_eoi();
 		return;
 	case IRQ_OFFSET+IRQ_SERIAL:
 		serial_intr();
+		irq_eoi();
+		lapic_eoi();
+		return;
+	case IRQ_OFFSET+IRQ_E1000:
+		e1000_intr();
+		irq_eoi();
+		lapic_eoi();
 		return;
 	}
 		

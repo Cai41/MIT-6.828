@@ -1,5 +1,5 @@
 #include <inc/error.h>
-#include <lib/syscall.c>
+#include <inc/lib.h>
 
 #include "ns.h"
 
